@@ -1,0 +1,11 @@
+{
+  "name" : "stupid-backbone-app",
+  "description" : "I am testing a thing and it is stupid",
+  "version" : "0.1.0",
+  "private" : true,
+  "dependencies" : {
+    "express" : "4.x",
+    "socket.io" : "1.x",
+    "backbone.io" : "x"
+  }
+}

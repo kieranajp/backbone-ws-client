@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>hello-backbonejs</title>
+</head>
+<body>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.7.1/coffee-script.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/backbone.io.js"></script>
+
+  <script type="text/coffeescript">
+    (($) ->
+      Backbone.io.connect()
+
+      Item = Backbone.Model.extend
+        defaults :
+          part1 : "hello"
+          part2 : "world"
+
+
+      List = Backbone.Collection.extend
+        model : Item
+
+        backend : "testbackend"
+
+        initialize : ->
+          this.bindBackend()
+
+
+      ItemView = Backbone.View.extend
+        tagName : "li"
+
+        events :
+          "click .swap" : "swap"
+          "click .delete" : "remove"
+
+        initialize : ->
+          _.bindAll @, "render", "unrender", "swap", "remove"
+
+          @model.bind "change", @render
+          @model.bind "remove", @unrender
+
+        render : ->
+          $(@el).html(
+            "<span style='color:black'>\
+            #{@model.get('part1')} #{@model.get('part2')}\
+            </span>
+            <button class='swap'>swap</button>
+            <button class='delete'>delete</button>"
+          )
+          @
+
+        unrender : ->
+          $(@el).remove()
+
+        swap : ->
+          swapped =
+            part1 : @model.get "part2"
+            part2 : @model.get "part1"
+          @model.set(swapped)
+
+        remove : ->
+          @model.destroy()
+
+
+      ListView = Backbone.View.extend
+        el : $("body")
+
+        events :
+          "click button#add" : "addItem"
+
+        initialize : ->
+          _.bindAll @, "render", "addItem", "appendItem"
+
+          @collection = new List
+          @collection.bind "add", @appendItem
+
+          @counter = 0
+          @render()
+
+        render : ->
+          $(@el).append "<button id='add'>+</button>"
+          $(@el).append "<ul></ul>"
+          $(@el).append "<button id='save'>save</button>"
+
+          for item in @collection.models
+            @appendItem item
+
+        addItem : ->
+          @counter++
+          item = new Item
+          item.set
+            part2 : item.get("part2") + @counter
+          @collection.add item
+          item.save()
+
+        appendItem : (item) ->
+          itemView = new ItemView
+            model : item
+
+          $("ul", @el).append itemView.render().el
+
+      listView = new ListView
+    )(jQuery)
+
+  </script>
+</body>
+</html>
